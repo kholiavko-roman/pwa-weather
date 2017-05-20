@@ -1,9 +1,15 @@
 (function () {
 	'use strict';
 
-	var weatherAPIUrlBase = 'https://publicdata-weather.firebaseio.com/';
+	// Progressive enhancement
+	if('serviceWorker' in navigator) {
+		navigator.serviceWorker.register('service-worker.js')
+				.then(function(result){
+					console.log('Service Worker Registered', result);
+				});
+	}
 
-	var injectedForecast = {
+	let injectedForecast = {
 		key: 'newyork',
 		label: 'New York, NY',
 		currently: {
@@ -30,21 +36,24 @@
 		}
 	};
 
-	var app = {
-				isLoading: true,
-				visibleCards: {},
-				selectedCities: [],
-				spinner: document.querySelector('.loader'),
-				cardTemplate: document.querySelector('.cardTemplate'),
-				container: document.querySelector('.main'),
-				addDialog: document.querySelector('.dialog-container'),
-				daysOfWeek: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
-			},
-			db;
+	let app = {
+		isLoading: true,
+		visibleCards: {},
+		selectedCities: [],
+		spinner: document.querySelector('.loader'),
+		cardTemplate: document.querySelector('.cardTemplate'),
+		container: document.querySelector('.main'),
+		addDialog: document.querySelector('.dialog-container'),
+		daysOfWeek: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
+	};
+	let db;
 
-	const DB_NAME = 'weather';
+	const weatherAPIUrlBase = 'https://publicdata-weather.firebaseio.com/';
+	const DB_NAME = 'pwa-weather';
 	const DB_VERSION = 1;
 	const DB_STORE_NAME = 'cities';
+	const DEFAULT_CITY_KEY = 'chicago';
+	const DEFAULT_CITY_LABEL = 'Chicago, IL';
 
 	/*****************************************************************************
 	 *
@@ -65,11 +74,11 @@
 
 	/* Event listener for add city button in add city dialog */
 	document.getElementById('butAddCity').addEventListener('click', function () {
-		var select = document.getElementById('selectCityToAdd'),
-				selected = select.options[select.selectedIndex],
-				key = selected.value,
-				label = selected.textContent,
-				selectedCity = {key: key, label: label};
+		let select = document.getElementById('selectCityToAdd');
+		let selected = select.options[select.selectedIndex];
+		let key = selected.value;
+		let label = selected.textContent;
+		let selectedCity = {key: key, label: label};
 
 		app.selectedCities.push(selectedCity);
 		app.getForecast(key, label);
@@ -101,9 +110,9 @@
 	// Updates a weather card with the latest weather forecast. If the card
 	// doesn't already exist, it's cloned from the template.
 	app.updateForecastCard = function (data) {
-		var card = app.visibleCards[data.key],
-				today = new Date().getDay(),
-				nextDays;
+		let card = app.visibleCards[data.key];
+		let	today = new Date().getDay();
+		let nextDays;
 
 		if (!card) {
 			card = app.cardTemplate.cloneNode(true);
@@ -132,9 +141,9 @@
 
 			nextDays = card.querySelectorAll('.future .oneday');
 
-			for (var i = 0; i < 7; i++) {
-				var nextDay = nextDays[i],
-						daily = data.daily.data[i];
+			for (let i = 0; i < 7; i++) {
+				let nextDay = nextDays[i];
+				let daily = data.daily.data[i];
 
 				if (daily && nextDay) {
 					nextDay.querySelector('.date').textContent =
@@ -164,14 +173,12 @@
 
 		// Gets a forecast for a specific city and update the card with the data
 	app.getForecast = function (key, label) {
-		var url = weatherAPIUrlBase + key + '.json',
+		let url = weatherAPIUrlBase + key + '.json',
 				request = new XMLHttpRequest();
 
 		request.onreadystatechange = function () {
 			if (request.readyState === XMLHttpRequest.DONE && request.status === 200) {
-				var response = JSON.parse(request.response);
-
-				console.log(response);
+				let response = JSON.parse(request.response);
 
 				response.key = key;
 				response.label = label;
@@ -185,7 +192,7 @@
 
 	// Iterate all of the cards and attempt to get the latest forecast data
 	app.updateForecasts = function () {
-		var keys = Object.keys(app.visibleCards);
+		let keys = Object.keys(app.visibleCards);
 
 		keys.forEach(function (key) {
 			app.getForecast(key);
@@ -194,59 +201,103 @@
 
 
 	// Open db
-	app.openDb = function() {
-		var req = indexedDB.open(DB_NAME, DB_VERSION);
-
-		req.onsuccess = function (event) {
+	app.openDb = function () {
+		console.log("openDb ...");
+		let req = indexedDB.open(DB_NAME, DB_VERSION);
+		req.onsuccess = function (evt) {
 			// Better use "this" than "req" to get the result to avoid problems with
 			// garbage collection.
 			// db = req.result;
 			db = this.result;
 			console.log("openDb DONE");
+			app.getCities();
 		};
 
-		req.onerror = function (event) {
-			console.error("openDb:", event.target.errorCode);
+		req.onerror = function (evt) {
+			console.error("openDb:", evt.target.errorCode);
 		};
 
-		req.onupgradeneeded = function (event) {
-			var store = event.currentTarget.result.createObjectStore(
-					DB_STORE_NAME, { keyPath: 'id', autoIncrement: true });
+		req.onupgradeneeded = function (evt) {
+			console.log("openDb.onupgradeneeded");
+			let store = evt.currentTarget.result.createObjectStore(
+					DB_STORE_NAME, {keyPath: 'id', autoIncrement: true});
 
-
-			// Create an objectStore to hold information about our cities.
-			store = db.createObjectStore("cities", {keyPath: "key"});
-
-			store.createIndex("key", "key", {unique: true});
+			store.createIndex('key', 'key', {unique: true});
+			store.createIndex('label', 'name', {unique: false});
 		};
 	};
 
 	// Save cities to idexedDB
-	app.saveSities = function (data) {
+	app.saveSities = function (obj) {
+		let store = this.getObjectStore(DB_STORE_NAME, 'readwrite');
 
-		// Store values in the newly created objectStore.
-		objectStore.add(data);
+
+		// Use put instead add, because, if value already exist,
+		// put just update record, adn we don`t need additional validation.
+		let req = store.put(obj);
+
+		req.onsuccess = function (event) {
+			console.log("Insertion in DB successful");
+		};
+
 
 	};
 
 	app.getCities = function () {
-		var transaction = db.transaction(["weather"]),
-				objectStore = transaction.objectStore("cities"),
-				request = objectStore.get();
+		let store = app.getObjectStore(DB_STORE_NAME, 'readonly');
+		let req = store.openCursor();
 
-		request.onerror = function (event) {
-			// Handle errors!
+		req.onsuccess = function (evt) {
+			let req = store.count();
+
+			// Get count of saved cities
+			req.onsuccess = function (event) {
+				let count = event.target.result;
+
+				// If count than get records from db
+				if (count > 0) {
+					let cursor = evt.target.result;
+
+					if (cursor) {
+						let req = store.get(cursor.key);
+
+						req.onsuccess = function (event) {
+							let value = event.target.result;
+							let key = value.key;
+							let label = value.label;
+
+							app.getForecast(key, label);
+							app.selectedCities.push({key, label});
+						}
+
+						// Move on to the next object in store
+						cursor.continue();
+					}
+
+				} else {
+					// If db empty - display default city
+					app.selectedCities.push({key: DEFAULT_CITY_KEY, label: DEFAULT_CITY_LABEL});
+					app.getForecast(DEFAULT_CITY_KEY, DEFAULT_CITY_LABEL);
+				}
+			}
+
+
 		};
-		request.onsuccess = function (event) {
-			// Do something with the request.result!
-			alert(request.result);
-		};
+
+	};
+
+	/**
+	 * @param {string} store_name
+	 * @param {string} mode either "readonly" or "readwrite"
+	 */
+	app.getObjectStore = function (storeName, mode) {
+		let tx = db.transaction(DB_STORE_NAME, mode);
+		return tx.objectStore(storeName);
 	};
 
 
-	app.updateForecastCard(injectedForecast);
-	//app.openDb()
-	//app.saveSities();
-	//app.getCities();
+	// Open db and get cities form db
+	app.openDb();
+
 
 })();
