@@ -2,9 +2,9 @@
 	'use strict';
 
 	// Progressive enhancement register service worker
-	if('serviceWorker' in navigator) {
+	if ('serviceWorker' in navigator) {
 		navigator.serviceWorker.register('service-worker.js')
-				.then(function(result){
+				.then(function (result) {
 					console.log('Service Worker Registered', result);
 				});
 	}
@@ -44,7 +44,8 @@
 		cardTemplate: document.querySelector('.cardTemplate'),
 		container: document.querySelector('.main'),
 		addDialog: document.querySelector('.dialog-container'),
-		daysOfWeek: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
+		daysOfWeek: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+		hasRequestPending: false
 	};
 	let db;
 
@@ -111,7 +112,7 @@
 	// doesn't already exist, it's cloned from the template.
 	app.updateForecastCard = function (data) {
 		let card = app.visibleCards[data.key];
-		let	today = new Date().getDay();
+		let today = new Date().getDay();
 		let nextDays;
 
 		if (!card) {
@@ -173,16 +174,42 @@
 
 		// Gets a forecast for a specific city and update the card with the data
 	app.getForecast = function (key, label) {
-		let url = weatherAPIUrlBase + key + '.json',
-				request = new XMLHttpRequest();
+		let url = weatherAPIUrlBase + key + '.json';
+
+		// if caches support in browser check this data in cache
+		console.log(" 'caches' in window " + 'caches' in window);
+		if ('caches' in window) {
+			caches.match(url).then(function (response) {
+
+				if (response) {
+					response.json().then(function (json) {
+
+						// Only update if the XHR is still pending
+						// This help to avoid rewrite fresh data
+						// form network request byt old caches data
+						if(app.hasRequestPending) {
+							json.key = key;
+							json.label = label;
+							app.updateForecastCard(json);
+						}
+					});
+				}
+			});
+		}
+
+		let request = new XMLHttpRequest();
+
+		app.hasRequestPending = true;
 
 		request.onreadystatechange = function () {
-			if (request.readyState === XMLHttpRequest.DONE && request.status === 200) {
+			if (request.readyState === XMLHttpRequest.DONE
+					&& request.status === 200) {
 				let response = JSON.parse(request.response);
 
 				response.key = key;
 				response.label = label;
 				app.updateForecastCard(response);
+				app.hasRequestPending = false;
 			}
 		};
 

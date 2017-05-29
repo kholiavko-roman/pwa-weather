@@ -1,4 +1,5 @@
 const CACHE_NAME = 'weatherPWA-v22';
+const CACHE_DATA_NAME = 'weatherPWA-data-v22';
 const FILES_TO_CACHE = [
 	'index.html',
 	'js/app.js',
@@ -19,6 +20,7 @@ const FILES_TO_CACHE = [
 ];
 
 // Install Service Worker
+// Cashes the resources required for the app shell
 self.addEventListener('install', function(e) {
 	console.log('[ServiceWorker] Install');
 
@@ -31,6 +33,7 @@ self.addEventListener('install', function(e) {
 });
 
 // Activate event
+// Removed old resources form the cache
 self.addEventListener('activate', function(e) {
 	console.log('[ServiceWorker] Activate');
 
@@ -47,6 +50,8 @@ self.addEventListener('activate', function(e) {
 });
 
 // Fetch event
+// Attempt return files form cache,
+// fallbacks to the network if it`s not available
 self.addEventListener('fetch', function(e) {
 	let request = e.request;
 
