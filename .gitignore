@@ -45,3 +45,5 @@ crashlytics-build.properties
 fabric.properties
 .gitignore
 .idea/vcs.xml
+*.cfg
+node_modules/

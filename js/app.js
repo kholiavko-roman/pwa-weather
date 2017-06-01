@@ -1,5 +1,6 @@
 (function () {
 	'use strict';
+	// Progressive web app should be reliable, fast and engaging.
 
 	// Progressive enhancement register service worker
 	if ('serviceWorker' in navigator) {
@@ -49,7 +50,7 @@
 	};
 	let db;
 
-	const weatherAPIUrlBase = 'https://publicdata-weather.firebaseio.com/';
+	const WEATHER_API_URL = 'https://publicdata-weather.firebaseio.com/';
 	const DB_NAME = 'pwa-weather';
 	const DB_VERSION = 1;
 	const DB_STORE_NAME = 'cities';
@@ -123,6 +124,12 @@
 			app.container.appendChild(card);
 			app.visibleCards[data.key] = card;
 
+			// Verify data is newer then what we already have, if not - return
+			let dateElem = card.querySelector('.date');
+			if(dateElem.getAttribute('data-dt') >= data.currently.time) {
+				return
+			}
+
 
 			card.querySelector('.description').textContent = data.currently.summary;
 			card.querySelector('.date').textContent = new Date(data.currently.time * 1000);
@@ -174,9 +181,10 @@
 
 		// Gets a forecast for a specific city and update the card with the data
 	app.getForecast = function (key, label) {
-		let url = weatherAPIUrlBase + key + '.json';
+		let url = WEATHER_API_URL + key + '.json';
 
-		// if caches support in browser check this data in cache
+		// Progressive enhancement
+		// Check if caches support in browser check this data in cache
 		console.log(" 'caches' in window " + 'caches' in window);
 		if ('caches' in window) {
 			caches.match(url).then(function (response) {
@@ -294,7 +302,7 @@
 							let label = value.label;
 
 							app.getForecast(key, label);
-							app.selectedCities.push({key, label});
+							app.selectedCities.push({key: key, label: label});
 						}
 
 						// Move on to the next object in store
