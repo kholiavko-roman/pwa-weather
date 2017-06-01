@@ -1,0 +1,31 @@
+{
+  "name": "pwa-weather",
+  "version": "0.1.0",
+  "description": "Progressive web application of weather",
+  "main": "gulpfile.js",
+  "dependencies": {
+    "gulp": "^3.9.1",
+    "sw-precache": "^5.1.1"
+  },
+  "devDependencies": {
+    "sw-precache": "^5.1.1"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/kholiavko-roman/pwa-weather.git"
+  },
+  "keywords": [
+    "pwa",
+    "service-workers",
+    "offline-first"
+  ],
+  "author": "Kholiavko Roman",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/kholiavko-roman/pwa-weather/issues"
+  },
+  "homepage": "https://github.com/kholiavko-roman/pwa-weather#readme"
+}
