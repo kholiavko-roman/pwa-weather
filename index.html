@@ -16,6 +16,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
   <meta name="apple-mobile-web-app-title" content="Weather">
+
   <link rel="apple-touch-icon" sizes="60x60" href="/images/icons/apple-60.png">
   <link rel="apple-touch-icon" sizes="76x76" href="/images/icons/apple-76.png">
   <link rel="apple-touch-icon" sizes="120x120" href="images/icons/apple-120.png">
@@ -40,12 +41,12 @@
       <div class="visual">
         <div class="icon"></div>
         <div class="temperature">
-          <span class="value"></span><span class="scale">°F</span>
+          <span class="value"></span><span class="scale">°C</span>
         </div>
       </div>
       <div class="description">
         <div class="feels-like">
-          <span class="value"></span><span class="scale">°F</span>
+          <span class="value"></span><span class="scale">°C</span>
         </div>
         <div class="precip"></div>
         <div class="humidity"></div>
@@ -136,12 +137,12 @@
     <div class="dialog-title">Add new city</div>
     <div class="dialog-body">
       <select id="selectCityToAdd">
-        <option value="austin">Austin, TX</option>
-        <option value="boston">Boston, MA</option>
-        <option value="chicago">Chicago, IL</option>
-        <option value="portland">Portland, OR</option>
-        <option value="sanfrancisco">San Francisco, CA</option>
-        <option value="seattle">Seattle, WA</option>
+        <option value="927589">Mykolaiv, UA</option>
+        <option value="924938">Kyiv, UA</option>
+        <option value="929398">Odessa, UA</option>
+        <option value="918981">Dnipro, UA</option>
+        <option value="2487956">San Francisco, USA</option>
+        <option value="638242">Berlin, DE</option>
       </select>
     </div>
     <div class="dialog-buttons">
@@ -153,7 +154,7 @@
 
 <div class="loader">
   <svg viewBox="0 0 32 32" width="32" height="32">
-    <circle id="ud811Spinner" cx="16" cy="16" r="14" fill="none"></circle>
+    <circle id="spinner" cx="16" cy="16" r="14" fill="none"></circle>
   </svg>
 </div>
 

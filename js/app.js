@@ -23,12 +23,12 @@
 	};
 	let db;
 
-	const WEATHER_API_URL = 'https://publicdata-weather.firebaseio.com/';
+	const WEATHER_API_URL = 'https://query.yahooapis.com/v1/public/yql?format=json&q=select%20*%20from%20weather.forecast%20where%20woeid=$$CITY_ID$$%20and%20u=%27c%27';
 	const DB_NAME = 'pwa-weather';
 	const DB_VERSION = 1;
 	const DB_STORE_NAME = 'cities';
-	const DEFAULT_CITY_KEY = 'chicago';
-	const DEFAULT_CITY_LABEL = 'Chicago, IL';
+	const DEFAULT_CITY_KEY = '924938';
+	const DEFAULT_CITY_LABEL = 'Kyiv, UA';
 
 	/*****************************************************************************
 	 *
@@ -154,7 +154,9 @@
 
 		// Gets a forecast for a specific city and update the card with the data
 	app.getForecast = function (key, label) {
-		let url = WEATHER_API_URL + key + '.json';
+		let url = WEATHER_API_URL.replace('$$CITY_ID$$', key);
+
+		console.log(url);
 
 		// Progressive enhancement
 		// Check if caches support in browser check this data in cache
