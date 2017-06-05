@@ -6,7 +6,7 @@ gulp.task('generate-sw', () => {
 		staticFileGlobs: [
 			'index.html',
 			'js/*.js',
-			'css/*.css',
+			'css/styles.min.css',
 			'images/*.{png,svg,gif,jpg}'
 		],
 		runtimeCaching: [{
@@ -14,7 +14,7 @@ gulp.task('generate-sw', () => {
 			handler: 'networkFirst',
 			options: {
 				cache: {
-					name: 'weatherData-v3'
+					name: 'weatherData-v4'
 				}
 			}
 		}]
