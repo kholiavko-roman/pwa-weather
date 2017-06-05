@@ -10,33 +10,6 @@
 				});
 	}
 
-	let injectedForecast = {
-		key: 'newyork',
-		label: 'New York, NY',
-		currently: {
-			time: 1453489481,
-			summary: 'Clear',
-			icon: 'partly-cloudy-day',
-			temperature: 52.74,
-			apparentTemperature: 74.34,
-			precipProbability: 0.20,
-			humidity: 0.77,
-			windBearing: 125,
-			windSpeed: 1.52
-		},
-		daily: {
-			data: [
-				{icon: 'clear-day', temperatureMax: 55, temperatureMin: 34},
-				{icon: 'rain', temperatureMax: 55, temperatureMin: 34},
-				{icon: 'snow', temperatureMax: 55, temperatureMin: 34},
-				{icon: 'sleet', temperatureMax: 55, temperatureMin: 34},
-				{icon: 'fog', temperatureMax: 55, temperatureMin: 34},
-				{icon: 'wind', temperatureMax: 55, temperatureMin: 34},
-				{icon: 'partly-cloudy-day', temperatureMax: 55, temperatureMin: 34}
-			]
-		}
-	};
-
 	let app = {
 		isLoading: true,
 		visibleCards: {},
@@ -126,7 +99,7 @@
 
 			// Verify data is newer then what we already have, if not - return
 			let dateElem = card.querySelector('.date');
-			if(dateElem.getAttribute('data-dt') >= data.currently.time) {
+			if (dateElem.getAttribute('data-dt') >= data.currently.time) {
 				return
 			}
 
@@ -195,7 +168,7 @@
 						// Only update if the XHR is still pending
 						// This help to avoid rewrite fresh data
 						// form network request byt old caches data
-						if(app.hasRequestPending) {
+						if (app.hasRequestPending) {
 							json.key = key;
 							json.label = label;
 							app.updateForecastCard(json);
