@@ -85,9 +85,6 @@
 	// Updates a weather card with the latest weather forecast. If the card
 	// doesn't already exist, it's cloned from the template.
 	app.updateForecastCard = function (data) {
-		console.log(data);
-
-
 		let card = app.visibleCards[data.key];
 		let today = new Date().getDay();
 		let dataLastUpdated = new Date(data.query.created);
@@ -98,23 +95,28 @@
 		let wind = data.query.results.channel.wind;
 		let nextDays;
 
-		console.log(current);
-
 		if (!card) {
 			card = app.cardTemplate.cloneNode(true);
 			card.classList.remove('cardTemplate');
 			card.querySelector('.location').textContent = data.label;
 			card.removeAttribute('hidden');
 			app.container.appendChild(card);
-			app.visibleCards[data.query.results.key] = card;
+			app.visibleCards[data.key] = card;
 
 			// Verify data is newer then what we already have, if not - return
 			let dateElem = card.querySelector('.date');
-			if (dateElem.getAttribute('data-dt') >= current.date) {
+
+			console.log(dateElem.getAttribute('data-dt'));
+			console.log(dataLastUpdated);
+
+			console.log(dateElem.getAttribute('data-dt') >= dataLastUpdated);
+
+			if (dateElem.getAttribute('data-dt') >= dataLastUpdated) {
 				console.log('RETURN');
 				return;
 			}
 
+			dateElem.setAttribute('data-dt', data.query.created);
 
 			card.querySelector('.description').textContent = current.text;
 			card.querySelector('.date').textContent = current.date;
@@ -148,7 +150,6 @@
 			}
 
 			if (app.isLoading) {
-				console.log('exit');
 				app.spinner.setAttribute('hidden', true);
 				app.container.removeAttribute('hidden');
 				app.isLoading = false;
@@ -170,6 +171,12 @@
 		// Progressive enhancement
 		// Check if caches support in browser check this data in cache
 		if ('caches' in window) {
+
+			caches.match(url).then(function (json) {
+				console.log(json)
+			});
+
+
 			caches.match(url).then(function (response) {
 
 				if (response) {
@@ -213,10 +220,12 @@
 		let keys = Object.keys(app.visibleCards);
 
 		keys.forEach(function (key) {
+			console.log(key);
 			app.getForecast(key);
 		});
 	};
 
+	// Get icon class by yahoo weather code
 	app.getIconClass = function (code) {
 		// Weather codes: https://developer.yahoo.com/weather/documentation.html#codes
 		let weatherCode = parseInt(code);

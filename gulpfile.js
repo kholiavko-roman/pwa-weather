@@ -10,7 +10,7 @@ gulp.task('generate-sw', () => {
 			'images/*.{png,svg,gif,jpg}'
 		],
 		runtimeCaching: [{
-			urlPattern: /^https:\/\/publicdata-weather\.firebaseio\.com/,
+			urlPattern: /^https:\/\/query\.yahooapi/,
 			handler: 'networkFirst',
 			options: {
 				cache: {
