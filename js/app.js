@@ -85,9 +85,20 @@
 	// Updates a weather card with the latest weather forecast. If the card
 	// doesn't already exist, it's cloned from the template.
 	app.updateForecastCard = function (data) {
+		console.log(data);
+
+
 		let card = app.visibleCards[data.key];
 		let today = new Date().getDay();
+		let dataLastUpdated = new Date(data.query.created);
+		let sunrise = data.query.results.channel.astronomy.sunrise;
+		let sunset = data.query.results.channel.astronomy.sunset;
+		let current = data.query.results.channel.item.condition;
+		let humidity = data.query.results.channel.atmosphere.humidity;
+		let wind = data.query.results.channel.wind;
 		let nextDays;
+
+		console.log(current);
 
 		if (!card) {
 			card = app.cardTemplate.cloneNode(true);
@@ -95,49 +106,49 @@
 			card.querySelector('.location').textContent = data.label;
 			card.removeAttribute('hidden');
 			app.container.appendChild(card);
-			app.visibleCards[data.key] = card;
+			app.visibleCards[data.query.results.key] = card;
 
 			// Verify data is newer then what we already have, if not - return
 			let dateElem = card.querySelector('.date');
-			if (dateElem.getAttribute('data-dt') >= data.currently.time) {
-				return
+			if (dateElem.getAttribute('data-dt') >= current.date) {
+				console.log('RETURN');
+				return;
 			}
 
 
-			card.querySelector('.description').textContent = data.currently.summary;
-			card.querySelector('.date').textContent = new Date(data.currently.time * 1000);
-			card.querySelector('.current .icon').classList.add(data.currently.icon);
+			card.querySelector('.description').textContent = current.text;
+			card.querySelector('.date').textContent = current.date;
+			card.querySelector('.current .icon').classList.add(app.getIconClass(current.code));
 			card.querySelector('.current .temperature .value').textContent =
-					Math.round(data.currently.temperature);
-			card.querySelector('.current .feels-like .value').textContent =
-					Math.round(data.currently.apparentTemperature);
-			card.querySelector('.current .precip').textContent =
-					Math.round(data.currently.precipProbability * 100) + '%';
+					Math.round(current.temp);
+			card.querySelector('.current .sunrise').textContent = sunrise;
+			card.querySelector('.current .sunset').textContent = sunset;
 			card.querySelector('.current .humidity').textContent =
-					Math.round(data.currently.humidity * 100) + '%';
+					Math.round(humidity) + '%';
 			card.querySelector('.current .wind .value').textContent =
-					Math.round(data.currently.windSpeed);
+					Math.round(wind.speed);
 			card.querySelector('.current .wind .direction').textContent =
-					data.currently.windBearing;
+					wind.direction;
 
 			nextDays = card.querySelectorAll('.future .oneday');
 
 			for (let i = 0; i < 7; i++) {
 				let nextDay = nextDays[i];
-				let daily = data.daily.data[i];
+				let daily = data.query.results.channel.item.forecast[i];
 
 				if (daily && nextDay) {
 					nextDay.querySelector('.date').textContent =
 							app.daysOfWeek[(i + today) % 7];
-					nextDay.querySelector('.icon').classList.add(daily.icon);
+					nextDay.querySelector('.icon').classList.add(app.getIconClass(daily.code));
 					nextDay.querySelector('.temp-high .value').textContent =
-							Math.round(daily.temperatureMax);
+							Math.round(daily.high);
 					nextDay.querySelector('.temp-low .value').textContent =
-							Math.round(daily.temperatureMin);
+							Math.round(daily.low);
 				}
 			}
 
 			if (app.isLoading) {
+				console.log('exit');
 				app.spinner.setAttribute('hidden', true);
 				app.container.removeAttribute('hidden');
 				app.isLoading = false;
@@ -156,11 +167,8 @@
 	app.getForecast = function (key, label) {
 		let url = WEATHER_API_URL.replace('$$CITY_ID$$', key);
 
-		console.log(url);
-
 		// Progressive enhancement
 		// Check if caches support in browser check this data in cache
-		console.log(" 'caches' in window " + 'caches' in window);
 		if ('caches' in window) {
 			caches.match(url).then(function (response) {
 
@@ -209,6 +217,71 @@
 		});
 	};
 
+	app.getIconClass = function (code) {
+		// Weather codes: https://developer.yahoo.com/weather/documentation.html#codes
+		let weatherCode = parseInt(code);
+
+		switch (weatherCode) {
+			case 25: // cold
+			case 32: // sunny
+			case 33: // fair (night)
+			case 34: // fair (day)
+			case 36: // hot
+			case 3200: // not available
+				return 'clear-day';
+			case 0: // tornado
+			case 1: // tropical storm
+			case 2: // hurricane
+			case 6: // mixed rain and sleet
+			case 8: // freezing drizzle
+			case 9: // drizzle
+			case 10: // freezing rain
+			case 11: // showers
+			case 12: // showers
+			case 17: // hail
+			case 35: // mixed rain and hail
+			case 40: // scattered showers
+				return 'rain';
+			case 3: // severe thunderstorms
+			case 4: // thunderstorms
+			case 37: // isolated thunderstorms
+			case 38: // scattered thunderstorms
+			case 39: // scattered thunderstorms (not a typo)
+			case 45: // thundershowers
+			case 47: // isolated thundershowers
+				return 'thunderstorms';
+			case 5: // mixed rain and snow
+			case 7: // mixed snow and sleet
+			case 13: // snow flurries
+			case 14: // light snow showers
+			case 16: // snow
+			case 18: // sleet
+			case 41: // heavy snow
+			case 42: // scattered snow showers
+			case 43: // heavy snow
+			case 46: // snow showers
+				return 'snow';
+			case 15: // blowing snow
+			case 19: // dust
+			case 20: // foggy
+			case 21: // haze
+			case 22: // smoky
+				return 'fog';
+			case 24: // windy
+			case 23: // blustery
+				return 'wind';
+			case 26: // cloudy
+			case 27: // mostly cloudy (night)
+			case 28: // mostly cloudy (day)
+			case 31: // clear (night)
+				return 'cloudy';
+			case 29: // partly cloudy (night)
+				return 'partly-cloudy-night';
+			case 30: // partly cloudy (day)
+			case 44: // partly cloudy
+				return 'partly-cloudy-day';
+		}
+	};
 
 	// Open db
 	app.openDb = function () {
@@ -241,7 +314,6 @@
 	app.saveSities = function (obj) {
 		let store = this.getObjectStore(DB_STORE_NAME, 'readwrite');
 
-
 		// Use put instead add, because, if value already exist,
 		// put just update record, adn we don`t need additional validation.
 		let req = store.put(obj);
@@ -249,7 +321,6 @@
 		req.onsuccess = function (event) {
 			console.log("Insertion in DB successful");
 		};
-
 
 	};
 

@@ -248,7 +248,8 @@ body {
 }
 
 .weather-forecast .date, .weather-forecast .description {
-	font-size: 1.25em;
+	margin-left: 9px;
+	font-size: 0.8em;
 }
 
 .weather-forecast .current {
@@ -259,8 +260,8 @@ body {
 }
 
 .weather-forecast .current .icon {
-	width: 128px;
-	height: 128px;
+	width: 70px;
+	height: 70px;
 }
 
 .weather-forecast .current .visual {
@@ -268,7 +269,7 @@ body {
 	display: -webkit-flex;
 	display: -ms-flexbox;
 	display: flex;
-	font-size: 4em;
+	font-size: 2.2em;
 }
 
 .weather-forecast .current .visual .scale {
@@ -285,6 +286,16 @@ body {
 
 .weather-forecast .current .feels-like:before {
 	content: "Feels like: ";
+	color: #888;
+}
+
+.weather-forecast .current .sunrise:before {
+	content: "Sunrise: ";
+	color: #888;
+}
+
+.weather-forecast .current .sunset:before {
+	content: "Sunset: ";
 	color: #888;
 }
 
@@ -318,6 +329,7 @@ body {
 	display: -webkit-flex;
 	display: -ms-flexbox;
 	display: flex;
+	margin-top: 10px;
 }
 
 .weather-forecast .future .oneday {
@@ -329,8 +341,8 @@ body {
 }
 
 .weather-forecast .future .oneday .icon {
-	width: 64px;
-	height: 64px;
+	width: 32px;
+	height: 32px;
 	margin-left: auto;
 	margin-right: auto;
 }
@@ -392,22 +404,27 @@ body {
 	background-image: url("../images/thunderstorms.png");
 }
 
-@media (max-width: 450px) {
+@media (min-width: 450px) {
 	.weather-forecast .date, .weather-forecast .description {
-		font-size: 0.9em;
-	}
-
-	.weather-forecast .current .icon {
-		width: 96px;
-		height: 96px;
+		font-size: 1.25em;
 	}
 
 	.weather-forecast .current .visual {
-		font-size: 3em;
-	}
-
-	.weather-forecast .future .oneday .icon {
-		width: 32px;
-		height: 32px;
+		font-size: 4em;
 	}
 }
+
+@media (min-width: 768px) {
+	.weather-forecast .current .icon {
+		width: 128px;
+		height: 128px;
+	}
+	.weather-forecast .future .oneday .icon {
+		width: 64px;
+		height: 64px;
+	}
+}
+
+
+
+
